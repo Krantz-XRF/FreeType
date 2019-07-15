@@ -6,6 +6,7 @@ module FreeType.Library
 
 import FreeType.LowLevel.Library (Library, initFreeType, doneFreeType)
 
+-- |Automatic initialization and finalization for FreeType.
 withFreeType :: (Library -> IO a) -> IO a
 withFreeType proc = do
     lib <- initFreeType

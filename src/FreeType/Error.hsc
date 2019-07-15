@@ -114,6 +114,7 @@ import Text.Printf (printf)
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+-- |Error code returned from FreeType functions.
 newtype ErrorCode = ErrorCode { getErrorCode :: CLong }
 
 -- |Error handler for FreeType errors.
@@ -128,12 +129,12 @@ errorHandler msg e
 unwrapError :: String -> IO ErrorCode -> IO ()
 unwrapError msg = (>>= errorHandler msg)
 
--- |Check whether an ErrorCode is not an error
+-- |Check whether an ErrorCode is not an error.
 isOk :: ErrorCode -> Bool
 isOk Ok = True
 isOk _  = False
 
--- |Check whether an ErrorCode is an error
+-- |Check whether an ErrorCode is an error.
 isError :: ErrorCode -> Bool
 isError = not . isOk
 
