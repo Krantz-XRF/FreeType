@@ -1,0 +1,6 @@
+.stack-work/
+FreeType.cabal
+*~
+DISCARD/
+test-env/
+.vscode/
