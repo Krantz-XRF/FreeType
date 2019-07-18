@@ -34,17 +34,16 @@ import Foreign.Marshal.Alloc (alloca)
 
 import Data.Coerce (coerce)
 
+import FreeType.LowLevel.FaceType (FaceRec, Face)
 import FreeType.LowLevel.Types (toFixedPoint, F26'6(..))
+import FreeType.LowLevel.Generic (Generic)
+import FreeType.LowLevel.Size (Size)
 import FreeType.LowLevel.Library (Library)
 import FreeType.LowLevel.GlyphSlot (GlyphSlot)
 import FreeType.Error (ErrorCode(..), unwrapError)
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
-
-data FaceRec
--- |Wrapper for Face, holding a font face.
-type Face = Ptr FaceRec
 
 foreign import ccall unsafe "FT_New_Face"
     c_newFace :: Library -> CString -> CInt -> Ptr Face -> IO ErrorCode
@@ -100,8 +99,8 @@ c_numCharmaps = #ptr FT_FaceRec, num_charmaps
 -- charmaps :: Face -> Ptr (Ptr CM.FT_CharMap)
 -- charmaps = #ptr FT_FaceRec, charmaps
 
--- generic :: Face -> Ptr G.FT_Generic
--- generic = #ptr FT_FaceRec, generic
+c_generic :: Face -> Ptr (Generic a)
+c_generic = #ptr FT_FaceRec, generic
 
 -- bbox :: Face -> Ptr BB.FT_BBox
 -- bbox = #ptr FT_FaceRec, bbox
@@ -134,8 +133,8 @@ c_underlineThickness = #ptr FT_FaceRec, underline_thickness
 c_glyph :: Face -> Ptr GlyphSlot
 c_glyph = #ptr FT_FaceRec, glyph
 
--- size :: Face -> Ptr S.FT_Size
--- size = #ptr FT_FaceRec, size
+c_size :: Face -> Ptr Size
+c_size = #ptr FT_FaceRec, size
 
 -- charmap :: Face -> Ptr CM.FT_CharMap
 -- charmap = #ptr FT_FaceRec, charmap
