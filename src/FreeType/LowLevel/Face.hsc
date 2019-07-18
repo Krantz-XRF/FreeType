@@ -34,7 +34,7 @@ import Foreign.Marshal.Alloc (alloca)
 
 import Data.Coerce (coerce)
 
-import FreeType.LowLevel.Types (toFixedPoint, F26'6(..), F16'16(..))
+import FreeType.LowLevel.Types (toFixedPoint, F26'6(..))
 import FreeType.LowLevel.Library (Library)
 import FreeType.LowLevel.GlyphSlot (GlyphSlot)
 import FreeType.Error (ErrorCode(..), unwrapError)
