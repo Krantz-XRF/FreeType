@@ -34,7 +34,7 @@ import Foreign.Marshal.Alloc (alloca)
 
 import Data.Coerce (coerce)
 
-import FreeType.LowLevel.Types (F26Dot6)
+import FreeType.LowLevel.Types (toFixedPoint, F26'6(..), F16'16(..))
 import FreeType.LowLevel.Library (Library)
 import FreeType.LowLevel.GlyphSlot (GlyphSlot)
 import FreeType.Error (ErrorCode(..), unwrapError)
@@ -152,15 +152,15 @@ getCharIndex face c = do
     return $ if idx == 0 then Nothing else Just (fromIntegral idx)
 
 foreign import ccall unsafe "FT_Set_Char_Size"
-    c_setCharSize :: Face -> F26Dot6 -> F26Dot6 -> CUInt -> CUInt -> IO ErrorCode
+    c_setCharSize :: Face -> F26'6 -> F26'6 -> CUInt -> CUInt -> IO ErrorCode
 
 -- |Set character size (in points) for a font face.
 setCharSize :: Face -> Double -> Double -> Int -> Int -> IO ()
 setCharSize face w h wres hres
     = unwrapError "Failed to set pixel size for font face."
     $ c_setCharSize face w' h' (fromIntegral wres) (fromIntegral hres)
-    where w' = fromIntegral $ round $ w * 64
-          h' = fromIntegral $ round $ h * 64
+    where w' = toFixedPoint w
+          h' = toFixedPoint h
 
 foreign import ccall unsafe "FT_Set_Pixel_Sizes"
     c_setPixelSizes :: Face -> CUInt -> CUInt -> IO ErrorCode
