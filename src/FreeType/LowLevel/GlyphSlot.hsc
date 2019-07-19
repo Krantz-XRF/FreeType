@@ -8,7 +8,7 @@ import Foreign.Ptr
 import Foreign.C.Types
 
 import FreeType.LowLevel.FaceType (Face)
-import FreeType.LowLevel.Types (toFixedPoint, F16'16(..), F26'6(..))
+import FreeType.LowLevel.Types (toFixedPoint, F16'16(..), F26'6(..), Vector(..))
 import FreeType.LowLevel.Generic
 
 data GlyphSlotRec
@@ -36,8 +36,8 @@ c_linearHoriAdvance = #ptr FT_GlyphSlotRec, linearHoriAdvance
 c_linearVertAdvance :: GlyphSlot -> Ptr F16'16
 c_linearVertAdvance = #ptr FT_GlyphSlotRec, linearVertAdvance
 
--- c_advance :: GlyphSlot -> Ptr FT_Vector
--- c_advance = #ptr FT_GlyphSlotRec, advance
+c_advance :: GlyphSlot -> Ptr (Vector F26'6)
+c_advance = #ptr FT_GlyphSlotRec, advance
 
 -- c_format :: GlyphSlot -> Ptr FT_Glyph_Format
 -- c_format = #ptr FT_GlyphSlotRec, format
