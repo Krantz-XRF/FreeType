@@ -25,6 +25,15 @@ instance FixedPoint F26'6 where
     unwrapFixedPoint = unwrapF26'6
     wrapFixedPoint = F26'6
 
+-- |Fixed point (2.14) number format.
+newtype F2'14 = F2'14 { unwrapF2'14 :: CShort } deriving (Eq, Ord)
+
+instance FixedPoint F2'14 where
+    type RawType F2'14 = CShort
+    precision = Precision 6
+    unwrapFixedPoint = unwrapF2'14
+    wrapFixedPoint = F2'14
+
 -- |Fixed point (16.16) number format.
 newtype F16'16 = F16'16 { unwrapF16'16 :: CLong } deriving (Eq, Ord)
 
