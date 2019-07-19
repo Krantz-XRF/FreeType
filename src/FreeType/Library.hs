@@ -5,11 +5,8 @@ module FreeType.Library
     ) where
 
 import FreeType.LowLevel.Library (Library, initFreeType, doneFreeType)
+import Control.Exception (bracket)
 
 -- |Automatic initialization and finalization for FreeType.
 withFreeType :: (Library -> IO a) -> IO a
-withFreeType proc = do
-    lib <- initFreeType
-    res <- proc lib
-    doneFreeType lib
-    return res
+withFreeType = bracket initFreeType doneFreeType

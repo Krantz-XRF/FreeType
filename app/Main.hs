@@ -63,7 +63,6 @@ mainProc path =
         setCharSize face 0 16.0 0 0
         putStrLn "FreeType: Ready."
         printf "Font face loaded: %s (%s)\n" path (show face)
-        g <- loadCharGlyph face 'A' [LoadNoBitmap]
-        case g of
+        withCharGlyph face 'A' [LoadNoBitmap] $ \g -> case g of
             Nothing -> putStrLn "Failed to load glyph of 'A'."
             Just g' -> printf "Glyph loaded: A (%s)\n" (show g')
