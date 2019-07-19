@@ -112,8 +112,8 @@ loadGlyph face index flags = do
             else Just <$> peek glyph
 
 foreign import ccall unsafe "FT_Done_Glyph"
-    c_doneGlyph :: Face -> IO ()
+    c_doneGlyph :: Glyph -> IO ()
 
 -- |Discard a glyph.
-doneGlyph :: Face -> IO ()
+doneGlyph :: Glyph -> IO ()
 doneGlyph = c_doneGlyph
