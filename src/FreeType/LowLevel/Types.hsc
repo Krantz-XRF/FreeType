@@ -60,6 +60,9 @@ instance Storable a => Storable (Vector a) where
         (#poke FT_Vector, x) p x
         (#poke FT_Vector, y) p y
 
+instance Functor Vector where
+    fmap f (Vector x y) = Vector (f x) (f y)
+
 -- |Wrapper for FT_BBox (the bounding box).
 data BBox a = BBox
     { xMin :: a -- The horizontal minimum (left-most).
@@ -82,3 +85,6 @@ instance Storable a => Storable (BBox a) where
         (#poke FT_BBox, yMin) p yMin
         (#poke FT_BBox, xMax) p xMax
         (#poke FT_BBox, yMax) p yMax
+
+instance Functor BBox where
+    fmap f (BBox xMin yMin xMax yMax) = BBox (f xMin) (f yMin) (f xMax) (f yMax)
