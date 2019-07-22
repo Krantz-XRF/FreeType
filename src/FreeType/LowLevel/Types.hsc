@@ -45,8 +45,8 @@ instance FixedPoint F16'16 where
 
 -- |Wrapper for FT_Vector.
 data Vector a = Vector
-    { x :: a    -- |The horizontal coordinate.
-    , y :: a    -- |The vertical coordinate.
+    { x :: a    -- The horizontal coordinate.
+    , y :: a    -- The vertical coordinate.
     } deriving (Show, Eq)
 
 instance Storable a => Storable (Vector a) where
@@ -62,10 +62,10 @@ instance Storable a => Storable (Vector a) where
 
 -- |Wrapper for FT_BBox (the bounding box).
 data BBox a = BBox
-    { xMin :: a -- |The horizontal minimum (left-most).
-    , yMin :: a -- |The vertical minimum (bottom-most).
-    , xMax :: a -- |The horizontal maximum (right-most).
-    , yMax :: a -- |The vertical maximum (top-most).
+    { xMin :: a -- The horizontal minimum (left-most).
+    , yMin :: a -- The vertical minimum (bottom-most).
+    , xMax :: a -- The horizontal maximum (right-most).
+    , yMax :: a -- The vertical maximum (top-most).
     } deriving (Show, Eq)
 
 instance Storable a => Storable (BBox a) where
