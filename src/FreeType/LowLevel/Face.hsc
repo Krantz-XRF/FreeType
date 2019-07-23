@@ -40,7 +40,7 @@ import FreeType.LowLevel.Generic (Generic)
 import FreeType.LowLevel.Size (Size)
 import FreeType.LowLevel.Library (Library)
 import FreeType.LowLevel.GlyphSlot (GlyphSlot)
-import FreeType.Error (ErrorCode(..), unwrapError)
+import FreeType.Error (ErrorCode(..), unwrapError, assert)
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -145,10 +145,11 @@ foreign import ccall unsafe "FT_Get_Char_Index"
     c_getCharIndex :: Face -> CULong -> IO CUInt
 
 -- |Get a character index from face.
-getCharIndex :: Face -> Char -> IO (Maybe Int)
+getCharIndex :: Face -> Char -> IO Int
 getCharIndex face c = do
     idx <- c_getCharIndex face (fromIntegral $ fromEnum c)
-    return $ if idx == 0 then Nothing else Just (fromIntegral idx)
+    assert (idx /= 0) "Failed to get character index from font face."
+    return $ fromIntegral idx
 
 foreign import ccall unsafe "FT_Set_Char_Size"
     c_setCharSize :: Face -> F26'6 -> F26'6 -> CUInt -> CUInt -> IO ErrorCode

@@ -56,7 +56,9 @@ import FreeType.LowLevel.Library (Library)
 import FreeType.LowLevel.Face (Face, c_glyph)
 import FreeType.LowLevel.GlyphSlot (GlyphSlot)
 import FreeType.LowLevel.Types (Vector, F16'16)
-import FreeType.Error (ErrorCode(..), unwrapError, isError)
+import FreeType.Error (ErrorCode(..), unwrapError, assert)
+
+import Text.Printf
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -106,18 +108,14 @@ foreign import ccall unsafe "FT_Get_Glyph"
     c_getGlyph :: GlyphSlot -> Ptr Glyph -> IO ErrorCode
 
 -- |Load a glyph from a font face.
-loadGlyph :: Face -> Int -> [LoadFlags] -> IO (Maybe Glyph)
+loadGlyph :: Face -> Int -> [LoadFlags] -> IO Glyph
 loadGlyph face index flags = do
-    err <- c_loadGlyph face (fromIntegral index) (foldl' (.|.) 0 $ map unwrapLoadFlags flags)
-    if isError err
-    then return Nothing
-    else do
-        slot <- peek $ c_glyph face
-        alloca $ \glyph -> do
-            err' <- c_getGlyph slot glyph
-            if isError err'
-            then return Nothing
-            else Just <$> peek glyph
+    unwrapError (printf "Failed to load glyph (index = %d) from a font face." index)
+        $ c_loadGlyph face (fromIntegral index) (foldl' (.|.) 0 $ map unwrapLoadFlags flags)
+    slot <- peek $ c_glyph face
+    alloca $ \glyph -> do
+        unwrapError "Failed to get glyph from slot." $ c_getGlyph slot glyph
+        peek glyph
 
 foreign import ccall unsafe "FT_Done_Glyph"
     c_doneGlyph :: Glyph -> IO ()
@@ -139,10 +137,10 @@ data OutlineGlyphRec
 -- |Wrapper for FT_OutlineGlyph
 type OutlineGlyph = Ptr OutlineGlyphRec
 
--- |Cast a glyph to an outline glyph when possible.
-castOutlineGlyph :: Glyph -> IO (Maybe OutlineGlyph)
+-- |Cast a glyph to an outline glyph.
+-- Throws exception when the glyph is not an outline glyph.
+castOutlineGlyph :: Glyph -> IO OutlineGlyph
 castOutlineGlyph g = do
     fmt <- peek (c_format g)
-    if fmt == GlyphFormatOutline
-    then return $ Just $ castPtr g
-    else return Nothing
+    assert (fmt == GlyphFormatOutline) "Cast cannot be performed, not an outline glyph."
+    return $ castPtr g

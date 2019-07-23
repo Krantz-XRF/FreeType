@@ -99,9 +99,10 @@ module FreeType.Error
     , errorHandler
     , unwrapError
     , isOk, isError
+    , assert
     ) where
 
-import Control.Monad (when)
+import Control.Monad (when, unless)
 import Control.Exception (ioError)
 import System.IO.Error (userError)
 import System.IO.Unsafe (unsafePerformIO)
@@ -128,6 +129,11 @@ errorHandler msg e
 -- |Error handler wrapper for IO monads.
 unwrapError :: String -> IO ErrorCode -> IO ()
 unwrapError msg = (>>= errorHandler msg)
+
+-- |Generic assertion.
+assert :: Bool -> String -> IO ()
+assert cond msg = unless cond $ ioError $ userError
+    $ printf "FreeType: Assertion failed: %s" msg
 
 -- |Check whether an ErrorCode is not an error.
 isOk :: ErrorCode -> Bool

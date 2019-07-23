@@ -88,15 +88,11 @@ mainProc path ch outPath =
         setCharSize face 0 16.0 0 0
         putStrLn "FreeType: Ready."
         printf "Font face loaded: %s (%s)\n" path (show face)
-        withCharGlyph face ch [LoadNoBitmap] $ \case
-            Nothing -> printf "Failed to load glyph of '%c'." ch
-            Just g -> do
-                printf "Glyph loaded: '%c' (%s)\n" ch (show g)
-                mog <- castOutlineGlyph g
-                case mog of
-                    Nothing -> putStrLn "Unexpected glyph format."
-                    Just og -> withFileOr outPath WriteMode stdout $ \outFile -> do
-                        putStrLn "Outline glyph confirmed."
-                        let po = c_outline og
-                        outlineTransform po (Matrix 1 0 0 (-1))
-                        printOutlineSVG "black" outFile po
+        withCharGlyph face ch [LoadNoBitmap] $ \g -> do
+            printf "Glyph loaded: '%c' (%s)\n" ch (show g)
+            og <- castOutlineGlyph g
+            withFileOr outPath WriteMode stdout $ \outFile -> do
+                putStrLn "Outline glyph confirmed."
+                let po = c_outline og
+                outlineTransform po (Matrix 1 0 0 (-1))
+                printOutlineSVG "black" outFile po
