@@ -96,6 +96,11 @@ module FreeType.Error
         , CorruptedFontHeader
         , CorruptedFontGlyphs
         )
+    , Error
+        ( ..
+        , LibraryError
+        , CustomError
+        )
     , errorHandler
     , unwrapError
     , isOk, isError
@@ -103,9 +108,7 @@ module FreeType.Error
     ) where
 
 import Control.Monad (when, unless)
-import Control.Exception (ioError)
-import System.IO.Error (userError)
-import System.IO.Unsafe (unsafePerformIO)
+import Control.Exception (Exception, throwIO)
 
 import Foreign.C.Types (CLong(..))
 import Foreign.C.String (CString(..), peekCString)
@@ -116,15 +119,30 @@ import Text.Printf (printf)
 #include FT_FREETYPE_H
 
 -- |Error code returned from FreeType functions.
-newtype ErrorCode = ErrorCode { getErrorCode :: CLong }
+newtype ErrorCode = ErrorCode { getErrorCode :: CLong } deriving Eq
+
+-- |FreeType errors.
+data Error = Error
+    { errorCode :: Maybe ErrorCode
+    , errorMessage :: String
+    } deriving (Eq)
+
+pattern LibraryError ec msg = Error (Just ec) msg
+pattern CustomError msg = Error Nothing msg
+
+instance Show Error where
+    show (Error errCode msg) = case errCode of
+        Nothing -> printf "FreeType: %s" msg
+        Just ec -> let n = fromIntegral (getErrorCode ec) :: Int
+            in printf "FreeType Error (%d): %s\nError Message: %s" n (show ec) msg
+
+instance Exception Error
 
 -- |Error handler for FreeType errors.
 errorHandler :: String -> ErrorCode -> IO ()
 errorHandler msg e
     = let n = fromIntegral (getErrorCode e) :: Int
-    in when (n /= 0)
-    $ ioError $ userError
-    $ printf "FreeType Error (%d): %s\nMessage: %s" n (show e) msg
+    in when (n /= 0) $ throwIO $ LibraryError e msg
 
 -- |Error handler wrapper for IO monads.
 unwrapError :: String -> IO ErrorCode -> IO ()
@@ -132,8 +150,7 @@ unwrapError msg = (>>= errorHandler msg)
 
 -- |Generic assertion.
 assert :: Bool -> String -> IO ()
-assert cond msg = unless cond $ ioError $ userError
-    $ printf "FreeType: Assertion failed: %s" msg
+assert cond msg = unless cond $ throwIO $ CustomError msg
 
 -- |Check whether an ErrorCode is not an error.
 isOk :: ErrorCode -> Bool
