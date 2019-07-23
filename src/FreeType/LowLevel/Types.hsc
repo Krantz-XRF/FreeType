@@ -47,8 +47,8 @@ instance FixedPoint F16'16 where
 
 -- |Wrapper for FT_Vector.
 data Vector a = Vector
-    { x :: a    -- The horizontal coordinate.
-    , y :: a    -- The vertical coordinate.
+    { x :: a    -- ^The horizontal coordinate.
+    , y :: a    -- ^The vertical coordinate.
     } deriving (Show, Eq)
 
 instance Storable a => Storable (Vector a) where
@@ -67,10 +67,10 @@ instance Functor Vector where
 
 -- |Wrapper for FT_BBox (the bounding box).
 data BBox a = BBox
-    { xMin :: a -- The horizontal minimum (left-most).
-    , yMin :: a -- The vertical minimum (bottom-most).
-    , xMax :: a -- The horizontal maximum (right-most).
-    , yMax :: a -- The vertical maximum (top-most).
+    { xMin :: a -- ^The horizontal minimum (left-most).
+    , yMin :: a -- ^The vertical minimum (bottom-most).
+    , xMax :: a -- ^The horizontal maximum (right-most).
+    , yMax :: a -- ^The vertical maximum (top-most).
     } deriving (Show, Eq)
 
 instance Storable a => Storable (BBox a) where
@@ -92,7 +92,12 @@ instance Functor BBox where
     fmap f (BBox xMin yMin xMax yMax) = BBox (f xMin) (f yMin) (f xMax) (f yMax)
 
 -- |Transformation matrix
-data Matrix a = Matrix a a a a deriving (Eq)
+data Matrix a = Matrix
+    { xx :: a -- ^The (0,0) matrix coefficient.
+    , xy :: a -- ^The (1,0) matrix coefficient.
+    , yx :: a -- ^The (0,1) matrix coefficient.
+    , yy :: a -- ^The (1,1) matrix coefficient.
+    } deriving (Eq)
 
 instance Storable a => Storable (Matrix a) where
     sizeOf _    = #size FT_Matrix
