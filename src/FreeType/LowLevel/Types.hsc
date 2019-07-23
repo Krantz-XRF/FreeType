@@ -4,6 +4,7 @@ module FreeType.LowLevel.Types
     ( module Data.FixedPoint
     , F26'6(..)
     , F16'16(..)
+    , F2'14(..)
     , Vector(..)
     , BBox(..)
     , Matrix(..)
