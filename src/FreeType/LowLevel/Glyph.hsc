@@ -1,6 +1,7 @@
 {-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module FreeType.LowLevel.Glyph
     ( LoadFlags
         ( ..
@@ -36,6 +37,11 @@ module FreeType.LowLevel.Glyph
         )
     , GlyphRec, Glyph
     , loadGlyph, doneGlyph
+    , c_library 
+    , c_format
+    , c_advance
+    , OutlineGlyphRec, OutlineGlyph
+    , castOutlineGlyph
     ) where
 
 import Foreign.C.Types
@@ -46,8 +52,10 @@ import Foreign.Marshal.Alloc
 import Data.Bits ((.|.))
 import Data.List (foldl')
 
+import FreeType.LowLevel.Library (Library)
 import FreeType.LowLevel.Face (Face, c_glyph)
 import FreeType.LowLevel.GlyphSlot (GlyphSlot)
+import FreeType.LowLevel.Types (Vector, F16'16)
 import FreeType.Error (ErrorCode(..), unwrapError, isError)
 
 #include <ft2build.h>
@@ -55,7 +63,7 @@ import FreeType.Error (ErrorCode(..), unwrapError, isError)
 #include FT_GLYPH_H
 
 -- |FT_LOAD_* and FT_LOAD_TARGET_* flags
-newtype LoadFlags = LoadFlags { unwrapLoadFlags :: CInt } deriving (Show)
+newtype LoadFlags = LoadFlags { unwrapLoadFlags :: CInt } deriving (Eq, Show, Storable)
 pattern LoadDefault           = LoadFlags (#const FT_LOAD_DEFAULT)
 pattern LoadNoScale           = LoadFlags (#const FT_LOAD_NO_SCALE)
 pattern LoadNoHinting         = LoadFlags (#const FT_LOAD_NO_HINTING)
@@ -81,7 +89,7 @@ pattern LoadTargetLcd         = LoadFlags (#const FT_LOAD_TARGET_LCD)
 pattern LoadTargetLcdV        = LoadFlags (#const FT_LOAD_TARGET_LCD_V)
 
 -- |FT_GLYPH_FORMAT_* flags
-newtype GlyphFormat = GlyphFormat { unwrapGlyphFormat :: CInt } deriving (Show)
+newtype GlyphFormat = GlyphFormat { unwrapGlyphFormat :: CInt } deriving (Eq, Show, Storable)
 pattern GlyphFormatComposite  = GlyphFormat (#const FT_GLYPH_FORMAT_COMPOSITE)
 pattern GlyphFormatBitmap     = GlyphFormat (#const FT_GLYPH_FORMAT_BITMAP)
 pattern GlyphFormatOutline    = GlyphFormat (#const FT_GLYPH_FORMAT_OUTLINE)
@@ -117,3 +125,24 @@ foreign import ccall unsafe "FT_Done_Glyph"
 -- |Discard a glyph.
 doneGlyph :: Glyph -> IO ()
 doneGlyph = c_doneGlyph
+
+c_library :: Glyph -> Ptr Library
+c_library = #ptr FT_GlyphRec, library
+
+c_format  :: Glyph -> Ptr GlyphFormat
+c_format = #ptr FT_GlyphRec, format
+
+c_advance :: Glyph -> Ptr (Vector F16'16)
+c_advance = #ptr FT_GlyphRec, advance
+
+data OutlineGlyphRec
+-- |Wrapper for FT_OutlineGlyph
+type OutlineGlyph = Ptr OutlineGlyphRec
+
+-- |Cast a glyph to an outline glyph when possible.
+castOutlineGlyph :: Glyph -> IO (Maybe OutlineGlyph)
+castOutlineGlyph g = do
+    fmt <- peek (c_format g)
+    if fmt == GlyphFormatOutline
+    then return $ Just $ castPtr g
+    else return Nothing

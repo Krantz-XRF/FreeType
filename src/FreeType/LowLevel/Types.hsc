@@ -1,10 +1,12 @@
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module FreeType.LowLevel.Types
     ( module Data.FixedPoint
     , F26'6(..)
     , F16'16(..)
     , Vector(..)
     , BBox(..)
+    , Matrix(..)
     ) where
 
 import Data.FixedPoint
@@ -17,7 +19,7 @@ import Foreign.Storable
 
 -- |Fixed point (26.6) number format:
 -- 26 bits for integral, and 6 for fractional.
-newtype F26'6 = F26'6 { unwrapF26'6 :: CLong } deriving (Eq, Ord)
+newtype F26'6 = F26'6 { unwrapF26'6 :: CLong } deriving (Eq, Ord, Storable)
 
 instance FixedPoint F26'6 where
     type RawType F26'6 = CLong
@@ -26,7 +28,7 @@ instance FixedPoint F26'6 where
     wrapFixedPoint = F26'6
 
 -- |Fixed point (2.14) number format.
-newtype F2'14 = F2'14 { unwrapF2'14 :: CShort } deriving (Eq, Ord)
+newtype F2'14 = F2'14 { unwrapF2'14 :: CShort } deriving (Eq, Ord, Storable)
 
 instance FixedPoint F2'14 where
     type RawType F2'14 = CShort
@@ -35,7 +37,7 @@ instance FixedPoint F2'14 where
     wrapFixedPoint = F2'14
 
 -- |Fixed point (16.16) number format.
-newtype F16'16 = F16'16 { unwrapF16'16 :: CLong } deriving (Eq, Ord)
+newtype F16'16 = F16'16 { unwrapF16'16 :: CLong } deriving (Eq, Ord, Storable)
 
 instance FixedPoint F16'16 where
     type RawType F16'16 = CLong
@@ -88,3 +90,24 @@ instance Storable a => Storable (BBox a) where
 
 instance Functor BBox where
     fmap f (BBox xMin yMin xMax yMax) = BBox (f xMin) (f yMin) (f xMax) (f yMax)
+
+-- |Transformation matrix
+data Matrix a = Matrix a a a a deriving (Eq)
+
+instance Storable a => Storable (Matrix a) where
+    sizeOf _    = #size FT_Matrix
+    alignment _ = #alignment FT_Matrix
+    peek p = do
+        xx <- (#peek FT_Matrix, xx) p
+        xy <- (#peek FT_Matrix, xy) p
+        yx <- (#peek FT_Matrix, yx) p
+        yy <- (#peek FT_Matrix, yy) p
+        return (Matrix xx xy yx yy)
+    poke p (Matrix xx xy yx yy) = do
+        (#poke FT_Matrix, xx) p xx
+        (#poke FT_Matrix, xy) p xy
+        (#poke FT_Matrix, yx) p yx
+        (#poke FT_Matrix, yy) p yy
+
+instance Functor Matrix where
+    fmap f (Matrix xx xy yx yy) = Matrix (f xx) (f xy) (f yx) (f yy)

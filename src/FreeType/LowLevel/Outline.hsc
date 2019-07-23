@@ -1,21 +1,33 @@
 {-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE RecordWildCards #-}
-module FreeType.LowLevel.Outline where
+module FreeType.LowLevel.Outline
+    ( Outline, POutline
+    , doneOutline
+    , OutlineFuncs(..)
+    , outlineDecompose
+    , outlineGetBBox
+    , outlineTransform
+    , c_outline
+    ) where
 
 import Foreign.C.Types
 import Foreign.Storable
 import Foreign.Ptr
 import Foreign.Marshal.Alloc
+import Foreign.Marshal.Utils
 
 import FreeType.LowLevel.Types
-import FreeType.LowLevel.Library
+import FreeType.LowLevel.Library (Library)
+import FreeType.LowLevel.Glyph (OutlineGlyph)
 import FreeType.Error
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include FT_GLYPH_H
 
 -- |Wrapper for FT_Outline.
 data Outline
+type POutline = Ptr Outline
 
 foreign import ccall unsafe "FT_Outline_Done"
     c_doneOutline :: Library -> Ptr Outline -> IO ErrorCode
@@ -73,10 +85,10 @@ foreign import ccall "wrapper"
 
 -- |Outline handler functions.
 data OutlineFuncs = OutlineFuncs
-    { moveToFunc :: (Vector Int) -> IO ()
-    , lineToFunc :: (Vector Int) -> IO ()
-    , conicToFunc :: (Vector Int) -> (Vector Int) -> IO ()
-    , cubicToFunc :: (Vector Int) -> (Vector Int) -> (Vector Int) -> IO ()
+    { moveToFunc :: Vector Int -> IO ()
+    , lineToFunc :: Vector Int -> IO ()
+    , conicToFunc :: Vector Int -> Vector Int -> IO ()
+    , cubicToFunc :: Vector Int -> Vector Int -> Vector Int -> IO ()
     , shift :: Int
     , delta :: Int
     }
@@ -104,3 +116,22 @@ outlineDecompose po OutlineFuncs{..} = alloca $ \funcs -> do
     freeHaskellFunPtr c_lineToFunc
     freeHaskellFunPtr c_conicToFunc
     freeHaskellFunPtr c_cubicToFunc
+
+foreign import ccall unsafe "FT_Outline_Get_BBox"
+    c_outlineGetBBox :: Ptr Outline -> Ptr (BBox CLong) -> IO ErrorCode
+
+-- |Get the bounding box for an outline.
+outlineGetBBox :: Ptr Outline -> IO (BBox Int)
+outlineGetBBox po = alloca $ \bbox -> do
+    unwrapError "Failed to get bounding box for an outline." $ c_outlineGetBBox po bbox
+    fmap fromIntegral <$> peek bbox
+
+foreign import ccall unsafe "FT_Outline_Transform"
+    c_outlineTransform :: Ptr Outline -> Ptr (Matrix F16'16) -> IO ()
+
+-- |Transform the outline with the matrix.
+outlineTransform :: Ptr Outline -> Matrix Double -> IO ()
+outlineTransform po m = with (toFixedPoint <$> m) (c_outlineTransform po)
+
+c_outline :: OutlineGlyph -> Ptr Outline
+c_outline = #ptr FT_OutlineGlyphRec, outline
