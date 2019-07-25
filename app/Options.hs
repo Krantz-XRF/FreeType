@@ -1,4 +1,5 @@
 {-# LANGUAGE PatternSynonyms #-}
+{-# OPTIONS_GHC -Wno-missing-pattern-synonym-signatures #-}
 module Options
     ( pattern OptArg
     , pattern ReqArg

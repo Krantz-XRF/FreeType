@@ -1,8 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE LambdaCase #-}
 module Main where
 
-import Foreign.Storable (peek)
 import Data.Maybe (listToMaybe)
 
 import Control.Monad (mapM_, when)

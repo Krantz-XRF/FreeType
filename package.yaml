@@ -30,12 +30,15 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -Wall
     dependencies:
     - FreeType
 
 library:
   source-dirs: src
   pkg-config-dependencies: freetype2 >= 2.10
+  ghc-options:
+  - -Wall
 
 tests:
   FreeType-test:
@@ -45,5 +48,6 @@ tests:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -Wall
     dependencies:
     - FreeType

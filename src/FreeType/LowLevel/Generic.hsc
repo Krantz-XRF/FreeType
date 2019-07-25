@@ -5,7 +5,6 @@ module FreeType.LowLevel.Generic
     , peekGeneric
     ) where
 
-import Foreign.C.Types
 import Foreign.Ptr
 import Foreign.Storable
 

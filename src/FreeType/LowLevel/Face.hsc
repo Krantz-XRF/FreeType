@@ -12,6 +12,7 @@ module FreeType.LowLevel.Face
     , c_styleName
     , c_numFixedSizes
     , c_numCharmaps
+    , c_generic
     , c_unitsPerEM
     , c_ascender
     , c_descender
@@ -21,6 +22,7 @@ module FreeType.LowLevel.Face
     , c_underlinePosition
     , c_underlineThickness
     , c_glyph
+    , c_size
     , getCharIndex
     , setCharSize
     , setPixelSizes
@@ -31,8 +33,6 @@ import Foreign.C.String (CString, withCString)
 import Foreign.Storable
 import Foreign.Ptr
 import Foreign.Marshal.Alloc (alloca)
-
-import Data.Coerce (coerce)
 
 import FreeType.LowLevel.FaceType (FaceRec, Face)
 import FreeType.LowLevel.Types (toFixedPoint, F26'6(..))

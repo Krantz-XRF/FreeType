@@ -1,4 +1,5 @@
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module FreeType.LowLevel.Types
     ( module Data.FixedPoint
@@ -58,13 +59,13 @@ instance Storable a => Storable (Vector a) where
     peek p = do
         x <- (#peek FT_Vector, x) p
         y <- (#peek FT_Vector, y) p
-        return (Vector x y)
-    poke p (Vector x y) = do
+        return Vector{..}
+    poke p Vector{..} = do
         (#poke FT_Vector, x) p x
         (#poke FT_Vector, y) p y
 
 instance Functor Vector where
-    fmap f (Vector x y) = Vector (f x) (f y)
+    fmap f Vector{..} = Vector (f x) (f y)
 
 -- |Wrapper for FT_BBox (the bounding box).
 data BBox a = BBox
@@ -82,15 +83,15 @@ instance Storable a => Storable (BBox a) where
         yMin <- (#peek FT_BBox, yMin) p
         xMax <- (#peek FT_BBox, xMax) p
         yMax <- (#peek FT_BBox, yMax) p
-        return (BBox xMin yMin xMax yMax)
-    poke p (BBox xMin yMin xMax yMax) = do
+        return BBox{..}
+    poke p BBox{..} = do
         (#poke FT_BBox, xMin) p xMin
         (#poke FT_BBox, yMin) p yMin
         (#poke FT_BBox, xMax) p xMax
         (#poke FT_BBox, yMax) p yMax
 
 instance Functor BBox where
-    fmap f (BBox xMin yMin xMax yMax) = BBox (f xMin) (f yMin) (f xMax) (f yMax)
+    fmap f BBox{..} = BBox (f xMin) (f yMin) (f xMax) (f yMax)
 
 -- |Transformation matrix
 data Matrix a = Matrix
@@ -108,12 +109,12 @@ instance Storable a => Storable (Matrix a) where
         xy <- (#peek FT_Matrix, xy) p
         yx <- (#peek FT_Matrix, yx) p
         yy <- (#peek FT_Matrix, yy) p
-        return (Matrix xx xy yx yy)
-    poke p (Matrix xx xy yx yy) = do
+        return Matrix{..}
+    poke p Matrix{..} = do
         (#poke FT_Matrix, xx) p xx
         (#poke FT_Matrix, xy) p xy
         (#poke FT_Matrix, yx) p yx
         (#poke FT_Matrix, yy) p yy
 
 instance Functor Matrix where
-    fmap f (Matrix xx xy yx yy) = Matrix (f xx) (f xy) (f yx) (f yy)
+    fmap f Matrix{..} = Matrix (f xx) (f xy) (f yx) (f yy)

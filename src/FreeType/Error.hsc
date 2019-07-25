@@ -1,4 +1,5 @@
 {-# LANGUAGE PatternSynonyms #-}
+{-# OPTIONS_GHC -Wno-missing-pattern-synonym-signatures #-}
 module FreeType.Error
     ( ErrorCode
         ( ..
@@ -111,7 +112,6 @@ import Control.Monad (when, unless)
 import Control.Exception (Exception, throwIO)
 
 import Foreign.C.Types (CLong(..))
-import Foreign.C.String (CString(..), peekCString)
 
 import Text.Printf (printf)
 
@@ -127,7 +127,12 @@ data Error = Error
     , errorMessage :: String
     } deriving (Eq)
 
+-- |Errors from inside the FreeType library.
+pattern LibraryError :: ErrorCode -> String -> Error
 pattern LibraryError ec msg = Error (Just ec) msg
+
+-- |Errors introduced in the Haskell bindings.
+pattern CustomError :: String -> Error
 pattern CustomError msg = Error Nothing msg
 
 instance Show Error where

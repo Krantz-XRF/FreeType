@@ -4,7 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Data.FixedPoint where
 
-import Data.Bits (shiftL, shiftR)
+import Data.Bits (shiftL)
 
 -- |Precision for a fixed point number, i.e. the length of fractional part.
 newtype Precision a = Precision { unwrapPrecision :: Int }
@@ -29,4 +29,4 @@ toFixedPoint :: forall a b . (FixedPoint a, RealFrac b) => b -> a
 toFixedPoint x =
     let p = unwrapPrecision $ precision @a
         base = fromIntegral $ (1 :: Int) `shiftL` p
-    in wrapFixedPoint $ fromIntegral $ round $ x * base
+    in wrapFixedPoint $ round $ x * base

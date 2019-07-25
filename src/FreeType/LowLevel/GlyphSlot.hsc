@@ -2,13 +2,26 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 module FreeType.LowLevel.GlyphSlot
     ( GlyphSlotRec, GlyphSlot
+    , c_face
+    , c_next
+    , c_generic
+    , c_linearHoriAdvance
+    , c_linearVertAdvance
+    , c_advance
+    , c_bitmapLeft
+    , c_bitmapTop
+    , c_numSubglyphs
+    , c_controlData
+    , c_controlLen
+    , c_lsbDelta
+    , c_rsbDelta
     ) where
 
 import Foreign.Ptr
 import Foreign.C.Types
 
 import FreeType.LowLevel.FaceType (Face)
-import FreeType.LowLevel.Types (toFixedPoint, F16'16(..), F26'6(..), Vector(..))
+import FreeType.LowLevel.Types (F16'16(..), F26'6(..), Vector(..))
 import FreeType.LowLevel.Generic
 
 data GlyphSlotRec

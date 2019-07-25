@@ -2,6 +2,7 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# OPTIONS_GHC -Wno-missing-pattern-synonym-signatures #-}
 module FreeType.LowLevel.Glyph
     ( LoadFlags
         ( ..
