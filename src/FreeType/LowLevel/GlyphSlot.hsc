@@ -8,21 +8,29 @@ module FreeType.LowLevel.GlyphSlot
     , c_linearHoriAdvance
     , c_linearVertAdvance
     , c_advance
+    , c_format
     , c_bitmapLeft
     , c_bitmapTop
+    , c_outline
     , c_numSubglyphs
     , c_controlData
     , c_controlLen
     , c_lsbDelta
     , c_rsbDelta
+    , getGlyph
     ) where
 
 import Foreign.Ptr
+import Foreign.Storable
 import Foreign.C.Types
+import Foreign.Marshal.Alloc
 
 import FreeType.LowLevel.FaceType (Face)
 import FreeType.LowLevel.Types (F16'16(..), F26'6(..), Vector(..))
-import FreeType.LowLevel.Generic
+import FreeType.LowLevel.Outline (Outline)
+import FreeType.LowLevel.Glyph (Glyph, GlyphFormat)
+import FreeType.LowLevel.Generic (Generic)
+import FreeType.Error (ErrorCode(..), unwrapError)
 
 data GlyphSlotRec
 -- |Wrapper for FT_GlyphSlot
@@ -52,8 +60,8 @@ c_linearVertAdvance = #ptr FT_GlyphSlotRec, linearVertAdvance
 c_advance :: GlyphSlot -> Ptr (Vector F26'6)
 c_advance = #ptr FT_GlyphSlotRec, advance
 
--- c_format :: GlyphSlot -> Ptr FT_Glyph_Format
--- c_format = #ptr FT_GlyphSlotRec, format
+c_format :: GlyphSlot -> Ptr GlyphFormat
+c_format = #ptr FT_GlyphSlotRec, format
 
 -- c_bitmap :: GlyphSlot -> Ptr FT_Bitmap
 -- c_bitmap = #ptr FT_GlyphSlotRec, bitmap
@@ -64,8 +72,8 @@ c_bitmapLeft = #ptr FT_GlyphSlotRec, bitmap_left
 c_bitmapTop :: GlyphSlot -> Ptr CInt
 c_bitmapTop = #ptr FT_GlyphSlotRec, bitmap_top
 
--- c_outline :: GlyphSlot -> Ptr FT_Outline
--- c_outline = #ptr FT_GlyphSlotRec, outline
+c_outline :: GlyphSlot -> Ptr Outline
+c_outline = #ptr FT_GlyphSlotRec, outline
 
 c_numSubglyphs :: GlyphSlot -> Ptr CUInt
 c_numSubglyphs = #ptr FT_GlyphSlotRec, num_subglyphs
@@ -84,3 +92,12 @@ c_lsbDelta = #ptr FT_GlyphSlotRec, lsb_delta
 
 c_rsbDelta :: GlyphSlot -> Ptr F26'6
 c_rsbDelta = #ptr FT_GlyphSlotRec, rsb_delta
+
+foreign import ccall unsafe "FT_Get_Glyph"
+    c_getGlyph :: GlyphSlot -> Ptr Glyph -> IO ErrorCode
+
+-- |Get a glyph from a glyph slot.
+getGlyph :: GlyphSlot -> IO Glyph
+getGlyph slot = alloca $ \glyph -> do
+    unwrapError "Failed to get glyph from slot." $ c_getGlyph slot glyph
+    peek glyph

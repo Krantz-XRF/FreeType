@@ -48,14 +48,12 @@ module FreeType.LowLevel.Glyph
 import Foreign.C.Types
 import Foreign.Ptr
 import Foreign.Storable
-import Foreign.Marshal.Alloc
 
 import Data.Bits ((.|.))
 import Data.List (foldl')
 
 import FreeType.LowLevel.Library (Library)
-import FreeType.LowLevel.Face (Face, c_glyph)
-import FreeType.LowLevel.GlyphSlot (GlyphSlot)
+import FreeType.LowLevel.FaceType (Face)
 import FreeType.LowLevel.Types (Vector, F16'16)
 import FreeType.Error (ErrorCode(..), unwrapError, assert)
 
@@ -105,18 +103,11 @@ type Glyph = Ptr GlyphRec
 foreign import ccall unsafe "FT_Load_Glyph"
     c_loadGlyph :: Face -> CUInt -> CInt -> IO ErrorCode
 
-foreign import ccall unsafe "FT_Get_Glyph"
-    c_getGlyph :: GlyphSlot -> Ptr Glyph -> IO ErrorCode
-
 -- |Load a glyph from a font face.
-loadGlyph :: Face -> Int -> [LoadFlags] -> IO Glyph
-loadGlyph face index flags = do
+loadGlyph :: Face -> Int -> [LoadFlags] -> IO ()
+loadGlyph face index flags =
     unwrapError (printf "Failed to load glyph (index = %d) from a font face." index)
         $ c_loadGlyph face (fromIntegral index) (foldl' (.|.) 0 $ map unwrapLoadFlags flags)
-    slot <- peek $ c_glyph face
-    alloca $ \glyph -> do
-        unwrapError "Failed to get glyph from slot." $ c_getGlyph slot glyph
-        peek glyph
 
 foreign import ccall unsafe "FT_Done_Glyph"
     c_doneGlyph :: Glyph -> IO ()
