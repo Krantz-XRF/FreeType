@@ -38,12 +38,12 @@ doneOutline lib po = unwrapError "Failed to discard an outline." $ c_doneOutline
 
 -- |Wrapper for FT_Outline_Funcs.
 data COutlineFuncs a = COutlineFuncs
-    { c_moveToFunc :: FunPtr (Ptr (Vector CLong) -> Ptr a -> IO ())
-    , c_lineToFunc :: FunPtr (Ptr (Vector CLong) -> Ptr a -> IO ())
-    , c_conicToFunc :: FunPtr (Ptr (Vector CLong) -> Ptr (Vector CLong) -> Ptr a -> IO ())
-    , c_cubicToFunc :: FunPtr (Ptr (Vector CLong) -> Ptr (Vector CLong) -> Ptr (Vector CLong) -> Ptr a -> IO ())
+    { c_moveToFunc :: FunPtr (Ptr (Vector F26'6) -> Ptr a -> IO ())
+    , c_lineToFunc :: FunPtr (Ptr (Vector F26'6) -> Ptr a -> IO ())
+    , c_conicToFunc :: FunPtr (Ptr (Vector F26'6) -> Ptr (Vector F26'6) -> Ptr a -> IO ())
+    , c_cubicToFunc :: FunPtr (Ptr (Vector F26'6) -> Ptr (Vector F26'6) -> Ptr (Vector F26'6) -> Ptr a -> IO ())
     , c_shift :: Int
-    , c_delta :: Int
+    , c_delta :: F26'6
     }
 
 instance Storable (COutlineFuncs a) where
@@ -70,33 +70,33 @@ foreign import ccall "FT_Outline_Decompose"
 
 foreign import ccall "wrapper"
     wrapOutlineFunc1
-    :: (Ptr (Vector CLong) -> Ptr a -> IO ())
-    -> IO (FunPtr (Ptr (Vector CLong) -> Ptr a -> IO ()))
+    :: (Ptr (Vector F26'6) -> Ptr a -> IO ())
+    -> IO (FunPtr (Ptr (Vector F26'6) -> Ptr a -> IO ()))
 
 foreign import ccall "wrapper"
     wrapOutlineFunc2
-    :: (Ptr (Vector CLong) -> Ptr (Vector CLong) -> Ptr a -> IO ())
-    -> IO (FunPtr (Ptr (Vector CLong) -> Ptr (Vector CLong) -> Ptr a -> IO ()))
+    :: (Ptr (Vector F26'6) -> Ptr (Vector F26'6) -> Ptr a -> IO ())
+    -> IO (FunPtr (Ptr (Vector F26'6) -> Ptr (Vector F26'6) -> Ptr a -> IO ()))
 
 foreign import ccall "wrapper"
     wrapOutlineFunc3
-    :: (Ptr (Vector CLong) -> Ptr (Vector CLong) -> Ptr (Vector CLong) -> Ptr a -> IO ())
-    -> IO (FunPtr (Ptr (Vector CLong) -> Ptr (Vector CLong) -> Ptr (Vector CLong) -> Ptr a -> IO ()))
+    :: (Ptr (Vector F26'6) -> Ptr (Vector F26'6) -> Ptr (Vector F26'6) -> Ptr a -> IO ())
+    -> IO (FunPtr (Ptr (Vector F26'6) -> Ptr (Vector F26'6) -> Ptr (Vector F26'6) -> Ptr a -> IO ()))
 
 -- |Outline handler functions.
 data OutlineFuncs = OutlineFuncs
-    { moveToFunc :: Vector Int -> IO ()
-    , lineToFunc :: Vector Int -> IO ()
-    , conicToFunc :: Vector Int -> Vector Int -> IO ()
-    , cubicToFunc :: Vector Int -> Vector Int -> Vector Int -> IO ()
+    { moveToFunc :: Vector Double -> IO ()
+    , lineToFunc :: Vector Double -> IO ()
+    , conicToFunc :: Vector Double -> Vector Double -> IO ()
+    , cubicToFunc :: Vector Double -> Vector Double -> Vector Double -> IO ()
     , shift :: Int
-    , delta :: Int
+    , delta :: Double
     }
 
 -- |Decompose an outline with the given handlers.
 outlineDecompose :: Ptr Outline -> OutlineFuncs -> IO ()
 outlineDecompose po OutlineFuncs{..} = alloca $ \funcs -> do
-    let ipeek = fmap (fmap fromIntegral) . peek
+    let ipeek = fmap (fmap (fromFixedPoint :: F26'6 -> Double)) . peek
     c_moveToFunc <- wrapOutlineFunc1 $ \v _ -> ipeek v >>= moveToFunc
     c_lineToFunc <- wrapOutlineFunc1 $ \v _ -> ipeek v >>= lineToFunc
     c_conicToFunc <- wrapOutlineFunc2 $ \c v _ -> do
@@ -109,7 +109,7 @@ outlineDecompose po OutlineFuncs{..} = alloca $ \funcs -> do
         vv <- ipeek v
         cubicToFunc vc1 vc2 vv
     let c_shift = fromIntegral shift
-    let c_delta = fromIntegral delta
+    let c_delta = toFixedPoint delta
     poke funcs COutlineFuncs{..}
     unwrapError "Failed to decompose outline." $ c_outlineDecompose po funcs nullPtr
     freeHaskellFunPtr c_moveToFunc
@@ -118,13 +118,13 @@ outlineDecompose po OutlineFuncs{..} = alloca $ \funcs -> do
     freeHaskellFunPtr c_cubicToFunc
 
 foreign import ccall unsafe "FT_Outline_Get_BBox"
-    c_outlineGetBBox :: Ptr Outline -> Ptr (BBox CLong) -> IO ErrorCode
+    c_outlineGetBBox :: Ptr Outline -> Ptr (BBox F26'6) -> IO ErrorCode
 
 -- |Get the bounding box for an outline.
-outlineGetBBox :: Ptr Outline -> IO (BBox Int)
+outlineGetBBox :: Ptr Outline -> IO (BBox Double)
 outlineGetBBox po = alloca $ \bbox -> do
     unwrapError "Failed to get bounding box for an outline." $ c_outlineGetBBox po bbox
-    fmap fromIntegral <$> peek bbox
+    fmap fromFixedPoint <$> peek bbox
 
 foreign import ccall unsafe "FT_Outline_Transform"
     c_outlineTransform :: Ptr Outline -> Ptr (Matrix F16'16) -> IO ()

@@ -21,11 +21,11 @@ import Text.Printf (printf, hPrintf)
 import Data.IORef (newIORef, modifyIORef', readIORef)
 
 -- |File header for exporting SVG images.
-svgFileHeader :: BBox Int -> String
+svgFileHeader :: BBox Double -> String
 svgFileHeader BBox{..} = printf
     "<svg xmlns='http://www.w3.org/2000/svg'\n\
     \     xmlns:xlink='http://www.w3.org/1999/xlink'\n\
-    \     viewBox='%d %d %d %d'>\n\
+    \     viewBox='%f %f %f %f'>\n\
     \  <path d='\n"
     xMin yMin (xMax - xMin) (yMax - yMin)
 
@@ -39,12 +39,12 @@ svgFileFooter = printf
 -- |Printer for exporting SVG images.
 newOutlineSVGPrinter :: Handle -> OutlineFuncs
 newOutlineSVGPrinter h = OutlineFuncs
-    { moveToFunc = \(Vector x y) -> hPrintf h "           M %d %d\n" x y
-    , lineToFunc = \(Vector x y) -> hPrintf h "           L %d %d\n" x y
+    { moveToFunc = \(Vector x y) -> hPrintf h "           M %f %f\n" x y
+    , lineToFunc = \(Vector x y) -> hPrintf h "           L %f %f\n" x y
     , conicToFunc = \(Vector cx cy) (Vector x y) ->
-        hPrintf h "           Q %d %d %d %d\n" cx cy x y
+        hPrintf h "           Q %f %f %f %f\n" cx cy x y
     , cubicToFunc = \(Vector c1x c1y) (Vector c2x c2y) (Vector x y) ->
-        hPrintf h "           C %d %d %d %d %d %d\n" c1x c1y c2x c2y x y
+        hPrintf h "           C %f %f %f %f %f %f\n" c1x c1y c2x c2y x y
     , shift = 0
     , delta = 0
     }
@@ -62,10 +62,10 @@ class Bezier b where
     type ResultBezier b = (res :: *) | res -> b
     emptyBezier :: b
     resultBezier :: b -> ResultBezier b
-    moveTo :: Vector Int -> b -> b
-    lineTo :: Vector Int -> b -> b
-    conicTo :: Vector Int -> Vector Int -> b -> b
-    cubicTo :: Vector Int -> Vector Int -> Vector Int -> b -> b
+    moveTo :: Vector Double -> b -> b
+    lineTo :: Vector Double -> b -> b
+    conicTo :: Vector Double -> Vector Double -> b -> b
+    cubicTo :: Vector Double -> Vector Double -> Vector Double -> b -> b
 
     type ResultBezier b = b
     default resultBezier :: (ResultBezier b ~ b) => b -> ResultBezier b
@@ -73,7 +73,7 @@ class Bezier b where
     {-# MINIMAL emptyBezier, moveTo, lineTo, conicTo, cubicTo #-}
 
 -- |Extract a Bezier curve from an outline.
-extractBezier :: Bezier b => POutline -> Int -> Int -> IO (ResultBezier b)
+extractBezier :: Bezier b => POutline -> Int -> Double -> IO (ResultBezier b)
 extractBezier po sft dlt = do
     res <- newIORef emptyBezier
     outlineDecompose po OutlineFuncs
@@ -88,9 +88,9 @@ extractBezier po sft dlt = do
 
 -- |Bezier curve segments.
 class BezierSegment b where
-    lineFromTo :: Vector Int -> Vector Int -> b
-    conicFromTo :: Vector Int -> Vector Int -> Vector Int -> b
-    cubicFromTo :: Vector Int -> Vector Int -> Vector Int -> Vector Int -> b
+    lineFromTo :: Vector Double -> Vector Double -> b
+    conicFromTo :: Vector Double -> Vector Double -> Vector Double -> b
+    cubicFromTo :: Vector Double -> Vector Double -> Vector Double -> Vector Double -> b
 
 -- |A list, appending is O(1) instead of prepending.
 newtype AppendList a = AppendList [a]
@@ -108,7 +108,7 @@ unwrapAppendList :: AppendList a -> [a]
 unwrapAppendList (AppendList xs) = reverse xs
 
 -- |Build a Bezier curve out of some BezierSegment b.
-type BezierBuilder b = (Vector Int, AppendList b)
+type BezierBuilder b = (Vector Double, AppendList b)
 
 instance BezierSegment b => Bezier (BezierBuilder b) where
     type ResultBezier (BezierBuilder b) = [b]

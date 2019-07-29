@@ -13,9 +13,9 @@ import Text.Printf (printf)
 import Options
 import FreeType.Library
 import FreeType.Face
-import FreeType.Glyph
 import FreeType.Outline
 import FreeType.Types
+import FreeType.Utils
 
 defaultDebugLevel :: Int
 defaultDebugLevel = 2
@@ -86,11 +86,8 @@ mainProc path ch outPath =
         setCharSize face 0 16.0 0 0
         putStrLn "FreeType: Ready."
         printf "Font face loaded: %s (%s)\n" path (show face)
-        withCharGlyph face ch [LoadNoBitmap] $ \g -> do
-            printf "Glyph loaded: '%c' (%s)\n" ch (show g)
-            og <- castOutlineGlyph g
-            withFileOr outPath WriteMode stdout $ \outFile -> do
-                putStrLn "Outline glyph confirmed."
-                let po = c_outline og
-                outlineTransform po (Matrix 1 0 0 (-1))
-                printOutlineSVG "black" outFile po
+        withFileOr outPath WriteMode stdout $ \file -> do
+            (po, metrics) <- loadOutlineAndMetrics face ch
+            outlineTransform po (Matrix 1 0 0 (-1))
+            printOutlineSVG "black" file po
+            print metrics

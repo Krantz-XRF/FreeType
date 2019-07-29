@@ -13,6 +13,7 @@ module FreeType.LowLevel.Face
     , c_numFixedSizes
     , c_numCharmaps
     , c_generic
+    , c_bbox
     , c_unitsPerEM
     , c_ascender
     , c_descender
@@ -35,7 +36,7 @@ import Foreign.Ptr
 import Foreign.Marshal.Alloc (alloca)
 
 import FreeType.LowLevel.FaceType (FaceRec, Face)
-import FreeType.LowLevel.Types (toFixedPoint, F26'6(..))
+import FreeType.LowLevel.Types (toFixedPoint, F26'6(..), BBox(..))
 import FreeType.LowLevel.Generic (Generic)
 import FreeType.LowLevel.Size (Size)
 import FreeType.LowLevel.Library (Library)
@@ -63,8 +64,6 @@ newFace lib path cnt =
 -- |Discard a font face.
 doneFace :: Face -> IO ()
 doneFace = unwrapError "Failed to discard a font face." . c_doneFace
-
-------------------------------------------------------------------------------------------
 
 c_numFaces :: Face -> Ptr CLong
 c_numFaces = #ptr FT_FaceRec, num_faces
@@ -102,8 +101,8 @@ c_numCharmaps = #ptr FT_FaceRec, num_charmaps
 c_generic :: Face -> Ptr (Generic a)
 c_generic = #ptr FT_FaceRec, generic
 
--- bbox :: Face -> Ptr BB.FT_BBox
--- bbox = #ptr FT_FaceRec, bbox
+c_bbox :: Face -> Ptr (BBox a)
+c_bbox = #ptr FT_FaceRec, bbox
 
 c_unitsPerEM :: Face -> Ptr CUShort
 c_unitsPerEM = #ptr FT_FaceRec, units_per_EM
@@ -138,8 +137,6 @@ c_size = #ptr FT_FaceRec, size
 
 -- charmap :: Face -> Ptr CM.FT_CharMap
 -- charmap = #ptr FT_FaceRec, charmap
-
-------------------------------------------------------------------------------------------
 
 foreign import ccall unsafe "FT_Get_Char_Index"
     c_getCharIndex :: Face -> CULong -> IO CUInt

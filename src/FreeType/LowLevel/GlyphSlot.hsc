@@ -5,6 +5,7 @@ module FreeType.LowLevel.GlyphSlot
     , c_face
     , c_next
     , c_generic
+    , c_metrics
     , c_linearHoriAdvance
     , c_linearVertAdvance
     , c_advance
@@ -29,6 +30,7 @@ import FreeType.LowLevel.FaceType (Face)
 import FreeType.LowLevel.Types (F16'16(..), F26'6(..), Vector(..))
 import FreeType.LowLevel.Outline (Outline)
 import FreeType.LowLevel.Glyph (Glyph, GlyphFormat)
+import FreeType.LowLevel.GlyphMetrics (GlyphMetrics)
 import FreeType.LowLevel.Generic (Generic)
 import FreeType.Error (ErrorCode(..), unwrapError)
 
@@ -48,8 +50,8 @@ c_next = #ptr FT_GlyphSlotRec, next
 c_generic :: GlyphSlot -> Ptr (Generic a)
 c_generic = #ptr FT_GlyphSlotRec, generic
 
--- c_metrics :: GlyphSlot -> Ptr FT_Glyph_Metrics
--- c_metrics = #ptr FT_GlyphSlotRec, metrics
+c_metrics :: GlyphSlot -> Ptr (GlyphMetrics a)
+c_metrics = #ptr FT_GlyphSlotRec, metrics
 
 c_linearHoriAdvance :: GlyphSlot -> Ptr F16'16
 c_linearHoriAdvance = #ptr FT_GlyphSlotRec, linearHoriAdvance
