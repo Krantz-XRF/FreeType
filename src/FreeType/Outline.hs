@@ -1,5 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE TypeFamilyDependencies  #-}
 module FreeType.Outline
@@ -37,7 +38,7 @@ svgFileFooter = printf
     \</svg>"
 
 -- |Printer for exporting SVG images.
-newOutlineSVGPrinter :: Handle -> OutlineFuncs
+newOutlineSVGPrinter :: Handle -> OutlineFuncs Double
 newOutlineSVGPrinter h = OutlineFuncs
     { moveToFunc = \(Vector x y) -> hPrintf h "           M %f %f\n" x y
     , lineToFunc = \(Vector x y) -> hPrintf h "           L %f %f\n" x y
@@ -58,14 +59,15 @@ printOutlineSVG color h po = do
     hPutStr h (svgFileFooter color)
 
 -- |Bezier curves.
-class Bezier b where
+class RealFrac (BCoord b) => Bezier b where
     type ResultBezier b = (res :: *) | res -> b
+    type BCoord b :: *
     emptyBezier :: b
     resultBezier :: b -> ResultBezier b
-    moveTo :: Vector Double -> b -> b
-    lineTo :: Vector Double -> b -> b
-    conicTo :: Vector Double -> Vector Double -> b -> b
-    cubicTo :: Vector Double -> Vector Double -> Vector Double -> b -> b
+    moveTo :: Vector (BCoord b) -> b -> b
+    lineTo :: Vector (BCoord b) -> b -> b
+    conicTo :: Vector (BCoord b) -> Vector (BCoord b) -> b -> b
+    cubicTo :: Vector (BCoord b) -> Vector (BCoord b) -> Vector (BCoord b) -> b -> b
 
     type ResultBezier b = b
     default resultBezier :: (ResultBezier b ~ b) => b -> ResultBezier b
@@ -73,7 +75,7 @@ class Bezier b where
     {-# MINIMAL emptyBezier, moveTo, lineTo, conicTo, cubicTo #-}
 
 -- |Extract a Bezier curve from an outline.
-extractBezier :: Bezier b => POutline -> Int -> Double -> IO (ResultBezier b)
+extractBezier :: Bezier b => POutline -> Int -> BCoord b -> IO (ResultBezier b)
 extractBezier po sft dlt = do
     res <- newIORef emptyBezier
     outlineDecompose po OutlineFuncs
@@ -87,10 +89,11 @@ extractBezier po sft dlt = do
     resultBezier <$> readIORef res
 
 -- |Bezier curve segments.
-class BezierSegment b where
-    lineFromTo :: Vector Double -> Vector Double -> b
-    conicFromTo :: Vector Double -> Vector Double -> Vector Double -> b
-    cubicFromTo :: Vector Double -> Vector Double -> Vector Double -> Vector Double -> b
+class RealFrac (BSCoord b) => BezierSegment b where
+    type BSCoord b :: *
+    lineFromTo :: Vector (BSCoord b) -> Vector (BSCoord b) -> b
+    conicFromTo :: Vector (BSCoord b) -> Vector (BSCoord b) -> Vector (BSCoord b) -> b
+    cubicFromTo :: Vector (BSCoord b) -> Vector (BSCoord b) -> Vector (BSCoord b) -> Vector (BSCoord b) -> b
 
 -- |A list, appending is O(1) instead of prepending.
 newtype AppendList a = AppendList [a]
@@ -108,13 +111,17 @@ unwrapAppendList :: AppendList a -> [a]
 unwrapAppendList (AppendList xs) = reverse xs
 
 -- |Build a Bezier curve out of some BezierSegment b.
-type BezierBuilder b = (Vector Double, AppendList b)
+data BezierBuilder b = BB
+    { lastPoint :: Vector (BSCoord b)
+    , resultList :: AppendList b
+    }
 
 instance BezierSegment b => Bezier (BezierBuilder b) where
     type ResultBezier (BezierBuilder b) = [b]
-    emptyBezier = (Vector 0 0, nil)
-    resultBezier = unwrapAppendList . snd
-    moveTo  v       (_,  lst) = (v, lst)
-    lineTo  v       (lp, lst) = (v, append lst $ lineFromTo lp v)
-    conicTo c  v    (lp, lst) = (v, append lst $ conicFromTo lp c v)
-    cubicTo c1 c2 v (lp, lst) = (v, append lst $ cubicFromTo lp c1 c2 v)
+    type BCoord (BezierBuilder b) = BSCoord b
+    emptyBezier = BB { lastPoint = Vector 0 0, resultList = nil }
+    resultBezier = unwrapAppendList . resultList
+    moveTo  v       (BB _  lst) = BB v lst
+    lineTo  v       (BB lp lst) = BB v (append lst $ lineFromTo lp v)
+    conicTo c  v    (BB lp lst) = BB v (append lst $ conicFromTo lp c v)
+    cubicTo c1 c2 v (BB lp lst) = BB v (append lst $ cubicFromTo lp c1 c2 v)

@@ -152,7 +152,7 @@ foreign import ccall unsafe "FT_Set_Char_Size"
     c_setCharSize :: Face -> F26'6 -> F26'6 -> CUInt -> CUInt -> IO ErrorCode
 
 -- |Set character size (in points) for a font face.
-setCharSize :: Face -> Double -> Double -> Int -> Int -> IO ()
+setCharSize :: RealFrac a => Face -> a -> a -> Int -> Int -> IO ()
 setCharSize face w h wres hres
     = unwrapError "Failed to set pixel size for font face."
     $ c_setCharSize face w' h' (fromIntegral wres) (fromIntegral hres)

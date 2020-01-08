@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TypeApplications #-}
 module Main where
 
 import Data.Maybe (listToMaybe)
@@ -83,11 +84,11 @@ mainProc :: String -> Char -> Maybe FilePath -> IO ()
 mainProc path ch outPath =
     withFreeType $ \lib ->
     withFace lib path 0 $ \face -> do
-        setCharSize face 0 16.0 0 0
+        setCharSize @Double face 0 16 0 0
         putStrLn "FreeType: Ready."
         printf "Font face loaded: %s (%s)\n" path (show face)
         withFileOr outPath WriteMode stdout $ \file -> do
-            (po, metrics) <- loadOutlineAndMetrics face ch
-            outlineTransform po (Matrix 1 0 0 (-1))
+            (po, metrics) <- loadOutlineAndMetrics @Double face ch
+            outlineTransform po (Matrix @Double 1 0 0 (-1))
             printOutlineSVG "black" file po
             print metrics
