@@ -1,0 +1,41 @@
+name:                FreeType-TextRender
+version:             0.1.0.0
+github:              "Krantz-XRF/FreeType"
+license:             BSD3
+author:              "Krantz-XRF"
+maintainer:          "Krantz.XRF@outlook.com"
+copyright:           "(c) Krantz 2020"
+
+extra-source-files:
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/Krantz-XRF/FreeType#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+  ghc-options:
+  - -Wall
+  dependencies:
+  - FreeType
+
+tests:
+  FreeType-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    - -Wall
+    dependencies:
+    - FreeType-TextRender
