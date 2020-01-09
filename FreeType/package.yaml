@@ -7,7 +7,6 @@ maintainer:          "Krantz.XRF@outlook.com"
 copyright:           "(c) Krantz 2019"
 
 extra-source-files:
-- README.md
 - ChangeLog.md
 
 # Metadata used when publishing your package
@@ -21,18 +20,6 @@ description:         Please see the README on GitHub at <https://github.com/Kran
 
 dependencies:
 - base >= 4.7 && < 5
-
-executables:
-  FreeType-convert:
-    source-dirs: app
-    main: Main.hs
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    - -Wall
-    dependencies:
-    - FreeType
 
 library:
   source-dirs: src
