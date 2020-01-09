@@ -145,9 +145,7 @@ instance Exception Error
 
 -- |Error handler for FreeType errors.
 errorHandler :: String -> ErrorCode -> IO ()
-errorHandler msg e
-    = let n = fromIntegral (getErrorCode e) :: Int
-    in when (n /= 0) $ throwIO $ LibraryError e msg
+errorHandler msg e = when (isError e) $ throwIO $ LibraryError e msg
 
 -- |Error handler wrapper for IO monads.
 unwrapError :: String -> IO ErrorCode -> IO ()
