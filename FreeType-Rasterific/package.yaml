@@ -1,4 +1,4 @@
-name:                FreeType-TextRender
+name:                FreeType-Rasterific
 version:             0.1.0.0
 github:              "Krantz-XRF/FreeType"
 license:             BSD3
@@ -38,4 +38,4 @@ tests:
     - -with-rtsopts=-N
     - -Wall
     dependencies:
-    - FreeType-TextRender
+    - FreeType-Rasterific
