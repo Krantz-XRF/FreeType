@@ -12,6 +12,17 @@ import FreeType.Error
 import Foreign.Ptr
 import Foreign.Storable
 
+-- |Extract Bezier curve outline for a character.
+-- See also 'loadOutlineAndMetrics'.
+loadOutline :: Face -> Char -> IO POutline
+loadOutline face ch = do
+    idx <- getCharIndex face ch
+    loadGlyph face idx [LoadNoBitmap]
+    slot <- peek (c_glyph face)
+    let po = c_outline slot
+    assert (po /= nullPtr) "Not an outline glyph."
+    return po
+
 -- |Extract Bezier curve outline and glyph metrics for a character.
 -- Note that at one time only 1 'POutline' can be valid.
 -- The last returned 'POutline' is invalidated at next call.
