@@ -82,11 +82,3 @@ class BezierSegment b where
 ```
 
 If any type `b` is an instance of `BezierSegment`, `[b]` is automatically implemented as `Bezier` instances. So choose to implement either one is OK.
-
-## Reference
-
-Documentation can be generated using Haddock.
-
-For the data types (low level or high level), please refer to `FreeType.LowLevel.Types`, `FreeType.Types`, `FreeType.LowLevel.Size`, `FreeType.LowLevel.Generic`, and `Data.FixedPoint`.
-
-For the bindings, please refer to the corresponding module, e.g. for APIs concerning `FT_Glyph`, first remove the `FT_` prefix to get the Haskell type `Glyph`, and refer to module `FreeType.LowLevel.Glyph` and `FreeType.Glyph`.
