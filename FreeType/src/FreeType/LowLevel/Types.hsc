@@ -48,10 +48,7 @@ instance FixedPoint F16'16 where
     wrapFixedPoint = F16'16
 
 -- |Wrapper for FT_Vector.
-data Vector a = Vector
-    { x :: a    -- ^The horizontal coordinate.
-    , y :: a    -- ^The vertical coordinate.
-    } deriving (Show, Eq)
+data Vector a = Vector a a deriving (Show, Eq)
 
 instance Storable a => Storable (Vector a) where
     sizeOf _    = #size FT_Vector
@@ -59,13 +56,13 @@ instance Storable a => Storable (Vector a) where
     peek p = do
         x <- (#peek FT_Vector, x) p
         y <- (#peek FT_Vector, y) p
-        return Vector{..}
-    poke p Vector{..} = do
+        return (Vector x y)
+    poke p (Vector x y) = do
         (#poke FT_Vector, x) p x
         (#poke FT_Vector, y) p y
 
 instance Functor Vector where
-    fmap f Vector{..} = Vector (f x) (f y)
+    fmap f (Vector x y) = Vector (f x) (f y)
 
 -- |Wrapper for FT_BBox (the bounding box).
 data BBox a = BBox
