@@ -13,6 +13,9 @@ import Foreign.Ptr
 import Foreign.Storable
 
 -- |Extract Bezier curve outline and glyph metrics for a character.
+-- Note that at one time only 1 'POutline' can be valid.
+-- The last returned 'POutline' is invalidated at next call.
+-- Some other functions may also invalidate this 'POutline'.
 loadOutlineAndMetrics :: RealFrac a => Face -> Char -> IO (POutline, GlyphMetrics a)
 loadOutlineAndMetrics face ch = do
     idx <- getCharIndex face ch
