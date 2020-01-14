@@ -17,6 +17,11 @@ import FreeType.Face
 import FreeType.Outline
 import FreeType.Types
 import FreeType.Utils
+import FreeType.Rasterific
+
+import Graphics.Rasterific
+import Graphics.Rasterific.Texture
+import Codec.Picture
 
 defaultDebugLevel :: Int
 defaultDebugLevel = 2
@@ -84,11 +89,21 @@ mainProc :: String -> Char -> Maybe FilePath -> IO ()
 mainProc path ch outPath =
     withFreeType $ \lib ->
     withFace lib path 0 $ \face -> do
-        setCharSize @Double face 0 16 0 0
+        setCharSize @Double face 0 32 0 0
         putStrLn "FreeType: Ready."
         printf "Font face loaded: %s (%s)\n" path (show face)
-        withFileOr outPath WriteMode stdout $ \file -> do
+        withFileOr (fmap (++ ".svg") outPath) WriteMode stdout $ \file -> do
             (po, metrics) <- loadOutlineAndMetrics @Double face ch
             outlineTransform po (Matrix @Double 1 0 0 (-1))
             printOutlineSVG "black" file po
             print metrics
+        case outPath of
+            Nothing -> return ()
+            Just name -> do
+                outline <- renderCharAt face ch (V2 40 40)
+                let white = PixelRGBA8 255 255 255 255
+                let transparent = PixelRGBA8 0 0 0 0
+                let img = renderDrawing 80 60 transparent
+                        $ withTexture (uniformTexture white)
+                        $ fill outline
+                writePng (name ++ ".png") img

@@ -20,6 +20,8 @@ description:         Please see the README on GitHub at <https://github.com/Kran
 
 dependencies:
 - base >= 4.7 && < 5
+- Rasterific
+- JuicyPixels
 
 executables:
   FreeType-convert:
@@ -32,3 +34,4 @@ executables:
     - -Wall
     dependencies:
     - FreeType
+    - FreeType-Rasterific
