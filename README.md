@@ -8,19 +8,19 @@ What is this project aimed for? It is mainly for handling the outline glyphs in 
 
 ## Low- and High-level API: `FreeType`
 
-See [`FreeType`](FreeType).
+See [`FreeType`](FreeType). See also [the online Haddock documentation](https://krantz-xrf.github.io/FreeType/).
 
 ## Rendering Backend: `FreeType-Rasterific`
 
-See [`FreeType-Rasterific`](FreeType-Rasterific).
+See [`FreeType-Rasterific`](FreeType-Rasterific). See also [the online Haddock documentation](https://krantz-xrf.github.io/FreeType/).
 
 ## Illustration: `FreeType-convert`
 
-See [`FreeType-convert`](FreeType-convert).
+See [`FreeType-convert`](FreeType-convert). See also [the online Haddock documentation](https://krantz-xrf.github.io/FreeType/).
 
 ## Reference
 
-Documentation can be generated using Haddock.
+Documentation can be generated using Haddock. Online documentation can be found at [My Blog](https://krantz-xrf.github.io/FreeType/). Please note that this documentation may not be up to date with the master branch.
 
 For the data types (low level or high level), please refer to `FreeType.LowLevel.Types`, `FreeType.Types`, `FreeType.LowLevel.Size`, `FreeType.LowLevel.Generic`, and `Data.FixedPoint`.
 
