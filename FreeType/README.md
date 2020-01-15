@@ -2,10 +2,6 @@
 
 (Partial) low level and high level bindings for FreeType.
 
-## Description
-
-What is this project aimed for? It is mainly for handling the outline glyphs in font files. Other support are planned, but not in the highest priority.
-
 ## Basic Usage
 
 Some important API are listed as follows:
@@ -71,6 +67,8 @@ class Bezier b where
     conicTo :: Vector Int -> Vector Int -> b -> b
     cubicTo :: Vector Int -> Vector Int -> Vector Int -> b -> b
 ```
+
+Note that here we present a simplified version of the `Bezier` class. The full version have a coordinate type `BCoord b` and a result type `ResultBezier b`. The following `BezierSegment` class is also shown simplified, and the full version have a coordinate type `BSCoord b`.
 
 Or, if the Bezier curve is represented as a list of Bezier curve segments, the segment type should implement `class BezierSegment`:
 
