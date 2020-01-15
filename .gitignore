@@ -1,0 +1,8 @@
+.stack-work/
+FreeType.cabal
+FreeType-convert.cabal
+FreeType-Rasterific.cabal
+*~
+DISCARD/
+test-env/
+.vscode/
