@@ -1,5 +1,7 @@
 # Haskell Bindings for `FreeType`
 
+Copyright Krantz-XRF (C) 2019
+
 ## Description
 
 What is this project aimed for? It is mainly for handling the outline glyphs in font files. Other support are planned, but not in the highest priority.
