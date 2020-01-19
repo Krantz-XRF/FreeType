@@ -10,7 +10,6 @@ module FreeType.Outline
     , Bezier(..)
     , extractBezier
     , BezierSegment(..)
-    , AppendList, nil, append, unwrapAppendList
     ) where
 
 import FreeType.LowLevel.Outline
@@ -20,6 +19,7 @@ import System.IO (Handle, hPutStr)
 import Text.Printf (printf, hPrintf)
 
 import Data.IORef (newIORef, modifyIORef', readIORef)
+import Data.AppendList
 
 -- |File header for exporting SVG images.
 svgFileHeader :: BBox Double -> String
@@ -95,21 +95,6 @@ class RealFrac (BSCoord b) => BezierSegment b where
     conicFromTo :: Vector (BSCoord b) -> Vector (BSCoord b) -> Vector (BSCoord b) -> b
     cubicFromTo :: Vector (BSCoord b) -> Vector (BSCoord b) -> Vector (BSCoord b) -> Vector (BSCoord b) -> b
 
--- |A list, appending is O(1) instead of prepending.
-newtype AppendList a = AppendList [a]
-
--- |Empty AppendList.
-nil :: AppendList a
-nil = AppendList []
-
--- |Append to an AppendList.
-append :: AppendList a -> a -> AppendList a
-append (AppendList xs) x = AppendList (x:xs)
-
--- |Get a list from an AppendList.
-unwrapAppendList :: AppendList a -> [a]
-unwrapAppendList (AppendList xs) = reverse xs
-
 -- |Build a Bezier curve out of some BezierSegment b.
 data BezierBuilder b = BB
     { lastPoint :: Vector (BSCoord b)
@@ -119,7 +104,7 @@ data BezierBuilder b = BB
 instance BezierSegment b => Bezier (BezierBuilder b) where
     type ResultBezier (BezierBuilder b) = [b]
     type BCoord (BezierBuilder b) = BSCoord b
-    emptyBezier = BB { lastPoint = Vector 0 0, resultList = nil }
+    emptyBezier = BB { lastPoint = Vector 0 0, resultList = mempty }
     resultBezier = unwrapAppendList . resultList
     moveTo  v       (BB _  lst) = BB v lst
     lineTo  v       (BB lp lst) = BB v (append lst $ lineFromTo lp v)
