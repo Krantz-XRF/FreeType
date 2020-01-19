@@ -4,3 +4,5 @@
 
 - `renderChar` and `renderCharAt`: get a `TextOutline` for a character
 - `translate`: translate a `TextOutline`
+- `FreeType.Rasterific.TextRender`: Basic support for string rendering
+  - TODO: Support kerning
