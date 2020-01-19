@@ -90,6 +90,10 @@ instance Storable a => Storable (BBox a) where
 instance Functor BBox where
     fmap f BBox{..} = BBox (f xMin) (f yMin) (f xMax) (f yMax)
 
+instance Ord a => Semigroup (BBox a) where
+    BBox x0 y0 x1 y1 <> BBox x0' y0' x1' y1'
+        = BBox (min x0 x0') (min y0 y0') (max x1 x1') (max y1 y1')
+
 -- |Transformation matrix
 data Matrix a = Matrix
     { xx :: a -- ^The (0,0) matrix coefficient.
