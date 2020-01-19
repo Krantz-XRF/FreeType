@@ -1,5 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Main where
 
 import Data.Maybe (listToMaybe)
@@ -17,7 +18,7 @@ import FreeType.Face
 import FreeType.Outline
 import FreeType.Types
 import FreeType.Utils
-import FreeType.Rasterific
+import FreeType.Rasterific.TextRender
 
 import Graphics.Rasterific
 import Graphics.Rasterific.Texture
@@ -100,10 +101,11 @@ mainProc path ch outPath =
         case outPath of
             Nothing -> return ()
             Just name -> do
-                outline <- renderCharAt face ch (V2 40 40)
+                let status = makePenStatus 32 (V2 40 40)
+                outline <- renderTextM [face] status "Hello"
                 let white = PixelRGBA8 255 255 255 255
                 let transparent = PixelRGBA8 0 0 0 0
-                let img = renderDrawing 80 60 transparent
+                let img = renderDrawing 240 80 transparent
                         $ withTexture (uniformTexture white)
                         $ fill outline
                 writePng (name ++ ".png") img

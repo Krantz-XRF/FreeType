@@ -2,8 +2,9 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE TypeFamilies #-}
-module FreeType.Rasterific
+module FreeType.Rasterific.Basic
     ( TextOutline
+    , CurveSegment
     , translate
     , renderChar
     , renderCharAt
