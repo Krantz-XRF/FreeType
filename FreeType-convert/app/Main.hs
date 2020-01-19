@@ -3,9 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import Data.Maybe (listToMaybe)
-
-import Control.Monad (mapM_, when)
+import Control.Monad (forM_, when)
 import System.Exit (exitSuccess)
 import System.IO (withFile, IOMode(..), FilePath, Handle, stdout)
 
@@ -32,7 +30,7 @@ data Options = Options
     , helpMessage :: Bool
     , debugOutput :: Int
     , outputFile :: Maybe String
-    , extractChar :: Maybe Char
+    , extractChar :: String
     } deriving (Show)
 
 defaultOptions :: Options
@@ -41,7 +39,7 @@ defaultOptions = Options
     , helpMessage = False
     , debugOutput = 0
     , outputFile = Nothing
-    , extractChar = Nothing
+    , extractChar = ""
     }
 
 options :: [OptDescr String Options]
@@ -60,16 +58,16 @@ options =
     , Option ['o'] ["output"] "Set output file."
         $ ReqArg "output file"
         $ \str opt -> return opt{ outputFile = Just str }
-    , Option ['c'] ["extract", "char"] "Select the character to extract."
-        $ ReqArg "char"
-        $ \str opt -> return opt{ extractChar = listToMaybe str }
+    , Option ['c'] ["extract", "string"] "Select the string to render."
+        $ ReqArg "string"
+        $ \str opt -> return opt{ extractChar = str }
     ]
 
 main :: IO ()
 main = do
     (eopts, rest, errs) <- getOptions options defaultOptions
     if not $ null errs
-    then mapM_ putStrLn errs
+    then forM_ errs putStrLn
     else case eopts of
         Left err -> putStrLn err
         Right Options{..} -> do
@@ -79,21 +77,21 @@ main = do
             case rest of
                 [] -> putStrLn "No input file."
                 (f:_) -> case extractChar of
-                    Nothing -> putStrLn "No character to extract."
-                    Just c -> mainProc f c outputFile
+                    "" -> putStrLn "Nothing to extract."
+                    _ -> mainProc f extractChar outputFile
 
 withFileOr :: Maybe FilePath -> IOMode -> Handle -> (Handle -> IO a) -> IO a
 withFileOr Nothing  _ h proc = proc h
 withFileOr (Just f) m _ proc = withFile f m proc
 
-mainProc :: String -> Char -> Maybe FilePath -> IO ()
-mainProc path ch outPath =
+mainProc :: String -> String -> Maybe FilePath -> IO ()
+mainProc path str outPath =
     withFreeType $ \lib ->
     withFace lib path 0 $ \face -> do
         setCharSize @Double face 0 32 0 0
         putStrLn "FreeType: Ready."
         printf "Font face loaded: %s (%s)\n" path (show face)
-        withFileOr (fmap (++ ".svg") outPath) WriteMode stdout $ \file -> do
+        forM_ str $ \ch -> withFileOr (fmap (++ '-':ch:".svg") outPath) WriteMode stdout $ \file -> do
             (po, metrics) <- loadOutlineAndMetrics @Double face ch
             outlineTransform po (Matrix @Double 1 0 0 (-1))
             printOutlineSVG "black" file po
@@ -102,7 +100,7 @@ mainProc path ch outPath =
             Nothing -> return ()
             Just name -> do
                 let status = makePenStatus 32 (V2 40 40)
-                outline <- renderTextM [face] status "Hello"
+                outline <- renderTextM [face] status (printString str)
                 let white = PixelRGBA8 255 255 255 255
                 let transparent = PixelRGBA8 0 0 0 0
                 let img = renderDrawing 240 80 transparent
