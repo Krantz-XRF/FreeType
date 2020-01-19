@@ -1,5 +1,9 @@
 {-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE GeneralisedNewtypeDeriving #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# OPTIONS_GHC -Wno-missing-pattern-synonym-signatures #-}
 module FreeType.LowLevel.Face
     ( FaceRec, Face
     , newFace, doneFace
@@ -25,9 +29,33 @@ module FreeType.LowLevel.Face
     , c_glyph
     , c_size
     , getCharIndex
+    , uncheckedGetCharIndex
     , setCharSize
     , setPixelSizes
+    , FaceFlag
+        ( ..
+        , SCALABLE
+        , FIXED_SIZES
+        , FIXED_WIDTH
+        , SFNT
+        , HORIZONTAL
+        , VERTICAL
+        , KERNING
+        , FAST_GLYPHS
+        , MULTIPLE_MASTERS
+        , GLYPH_NAMES
+        , EXTERNAL_STREAM
+        , HINTER
+        , CID_KEYED
+        , TRICKY
+        , COLOR
+        , VARIATION
+        )
+    , hasHorizontal
+    , hasVertical
     ) where
+
+import Data.Bits
 
 import Foreign.C.Types
 import Foreign.C.String (CString, withCString)
@@ -71,7 +99,7 @@ c_numFaces = #ptr FT_FaceRec, num_faces
 c_faceIndex :: Face -> Ptr CLong
 c_faceIndex = #ptr FT_FaceRec, face_index
 
-c_faceFlags :: Face -> Ptr CLong
+c_faceFlags :: Face -> Ptr FaceFlag
 c_faceFlags = #ptr FT_FaceRec, face_flags
 
 c_styleFlags :: Face -> Ptr CLong
@@ -142,11 +170,17 @@ foreign import ccall unsafe "FT_Get_Char_Index"
     c_getCharIndex :: Face -> CULong -> IO CUInt
 
 -- |Get a character index from face.
+-- If the character is not presented, an exception is raised.
 getCharIndex :: Face -> Char -> IO Int
 getCharIndex face c = do
     idx <- c_getCharIndex face (fromIntegral $ fromEnum c)
     assert (idx /= 0) "Failed to get character index from font face."
     return $ fromIntegral idx
+
+-- |Get a character index from face.
+-- If the character is not presented, 0 is returned.
+uncheckedGetCharIndex :: Face -> Char -> IO Int
+uncheckedGetCharIndex face = fmap fromIntegral . c_getCharIndex face . fromIntegral . fromEnum
 
 foreign import ccall unsafe "FT_Set_Char_Size"
     c_setCharSize :: Face -> F26'6 -> F26'6 -> CUInt -> CUInt -> IO ErrorCode
@@ -167,3 +201,34 @@ setPixelSizes :: Face -> Int -> Int -> IO ()
 setPixelSizes face w h
     = unwrapError "Failed to set pixel size for font face."
     $ c_setPixelSizes face (fromIntegral w) (fromIntegral h)
+
+newtype FaceFlag = FaceFlag { getFaceFlag :: CLong }
+    deriving stock (Eq)
+    deriving newtype (Bits, Storable)
+
+instance Semigroup FaceFlag where
+    (<>) = (.|.)
+
+instance Monoid FaceFlag where
+    mempty = FaceFlag 0
+
+pattern SCALABLE         = FaceFlag (#const FT_FACE_FLAG_SCALABLE)
+pattern FIXED_SIZES      = FaceFlag (#const FT_FACE_FLAG_FIXED_SIZES)
+pattern FIXED_WIDTH      = FaceFlag (#const FT_FACE_FLAG_FIXED_WIDTH)
+pattern SFNT             = FaceFlag (#const FT_FACE_FLAG_SFNT)
+pattern HORIZONTAL       = FaceFlag (#const FT_FACE_FLAG_HORIZONTAL)
+pattern VERTICAL         = FaceFlag (#const FT_FACE_FLAG_VERTICAL)
+pattern KERNING          = FaceFlag (#const FT_FACE_FLAG_KERNING)
+pattern FAST_GLYPHS      = FaceFlag (#const FT_FACE_FLAG_FAST_GLYPHS)
+pattern MULTIPLE_MASTERS = FaceFlag (#const FT_FACE_FLAG_MULTIPLE_MASTERS)
+pattern GLYPH_NAMES      = FaceFlag (#const FT_FACE_FLAG_GLYPH_NAMES)
+pattern EXTERNAL_STREAM  = FaceFlag (#const FT_FACE_FLAG_EXTERNAL_STREAM)
+pattern HINTER           = FaceFlag (#const FT_FACE_FLAG_HINTER)
+pattern CID_KEYED        = FaceFlag (#const FT_FACE_FLAG_CID_KEYED)
+pattern TRICKY           = FaceFlag (#const FT_FACE_FLAG_TRICKY)
+pattern COLOR            = FaceFlag (#const FT_FACE_FLAG_COLOR)
+pattern VARIATION        = FaceFlag (#const FT_FACE_FLAG_VARIATION)
+
+hasHorizontal, hasVertical :: Face -> IO Bool
+hasHorizontal face = peek (c_faceFlags face) >>= \f -> return $ f .&. HORIZONTAL /= mempty
+hasVertical face = peek (c_faceFlags face) >>= \f -> return $ f .&. VERTICAL /= mempty
