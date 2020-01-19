@@ -104,6 +104,7 @@ module FreeType.Error
         )
     , errorHandler
     , unwrapError
+    , customError
     , isOk, isError
     , assert
     ) where
@@ -151,9 +152,13 @@ errorHandler msg e = when (isError e) $ throwIO $ LibraryError e msg
 unwrapError :: String -> IO ErrorCode -> IO ()
 unwrapError msg = (>>= errorHandler msg)
 
+-- |Throw custom error.
+customError :: String -> IO a
+customError = throwIO . CustomError
+
 -- |Generic assertion.
 assert :: Bool -> String -> IO ()
-assert cond msg = unless cond $ throwIO $ CustomError msg
+assert cond = unless cond . customError
 
 -- |Check whether an ErrorCode is not an error.
 isOk :: ErrorCode -> Bool
