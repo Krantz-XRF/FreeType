@@ -34,25 +34,27 @@ module FreeType.LowLevel.Face
     , setPixelSizes
     , FaceFlag
         ( ..
-        , SCALABLE
-        , FIXED_SIZES
-        , FIXED_WIDTH
-        , SFNT
-        , HORIZONTAL
-        , VERTICAL
-        , KERNING
-        , FAST_GLYPHS
-        , MULTIPLE_MASTERS
-        , GLYPH_NAMES
-        , EXTERNAL_STREAM
-        , HINTER
-        , CID_KEYED
-        , TRICKY
-        , COLOR
-        , VARIATION
+        , Scalable
+        , FixedSizes
+        , FixedWidth
+        , Sfnt
+        , Horizontal
+        , Vertical
+        , Kerning
+        , FastGlyphs
+        , MultipleMasters
+        , GlyphNames
+        , ExternalStream
+        , Hinter
+        , CidKeyed
+        , Tricky
+        , Color
+        , Variation
         )
+    , hasFaceFlag
     , hasHorizontal
     , hasVertical
+    , hasKerning
     ) where
 
 import Data.Bits
@@ -203,8 +205,7 @@ setPixelSizes face w h
     $ c_setPixelSizes face (fromIntegral w) (fromIntegral h)
 
 newtype FaceFlag = FaceFlag { getFaceFlag :: CLong }
-    deriving stock (Eq)
-    deriving newtype (Bits, Storable)
+    deriving newtype (Eq, Bits, Storable)
 
 instance Semigroup FaceFlag where
     (<>) = (.|.)
@@ -212,23 +213,29 @@ instance Semigroup FaceFlag where
 instance Monoid FaceFlag where
     mempty = FaceFlag 0
 
-pattern SCALABLE         = FaceFlag (#const FT_FACE_FLAG_SCALABLE)
-pattern FIXED_SIZES      = FaceFlag (#const FT_FACE_FLAG_FIXED_SIZES)
-pattern FIXED_WIDTH      = FaceFlag (#const FT_FACE_FLAG_FIXED_WIDTH)
-pattern SFNT             = FaceFlag (#const FT_FACE_FLAG_SFNT)
-pattern HORIZONTAL       = FaceFlag (#const FT_FACE_FLAG_HORIZONTAL)
-pattern VERTICAL         = FaceFlag (#const FT_FACE_FLAG_VERTICAL)
-pattern KERNING          = FaceFlag (#const FT_FACE_FLAG_KERNING)
-pattern FAST_GLYPHS      = FaceFlag (#const FT_FACE_FLAG_FAST_GLYPHS)
-pattern MULTIPLE_MASTERS = FaceFlag (#const FT_FACE_FLAG_MULTIPLE_MASTERS)
-pattern GLYPH_NAMES      = FaceFlag (#const FT_FACE_FLAG_GLYPH_NAMES)
-pattern EXTERNAL_STREAM  = FaceFlag (#const FT_FACE_FLAG_EXTERNAL_STREAM)
-pattern HINTER           = FaceFlag (#const FT_FACE_FLAG_HINTER)
-pattern CID_KEYED        = FaceFlag (#const FT_FACE_FLAG_CID_KEYED)
-pattern TRICKY           = FaceFlag (#const FT_FACE_FLAG_TRICKY)
-pattern COLOR            = FaceFlag (#const FT_FACE_FLAG_COLOR)
-pattern VARIATION        = FaceFlag (#const FT_FACE_FLAG_VARIATION)
+pattern Scalable        = FaceFlag (#const FT_FACE_FLAG_SCALABLE)
+pattern FixedSizes      = FaceFlag (#const FT_FACE_FLAG_FIXED_SIZES)
+pattern FixedWidth      = FaceFlag (#const FT_FACE_FLAG_FIXED_WIDTH)
+pattern Sfnt            = FaceFlag (#const FT_FACE_FLAG_SFNT)
+pattern Horizontal      = FaceFlag (#const FT_FACE_FLAG_HORIZONTAL)
+pattern Vertical        = FaceFlag (#const FT_FACE_FLAG_VERTICAL)
+pattern Kerning         = FaceFlag (#const FT_FACE_FLAG_KERNING)
+pattern FastGlyphs      = FaceFlag (#const FT_FACE_FLAG_FAST_GLYPHS)
+pattern MultipleMasters = FaceFlag (#const FT_FACE_FLAG_MULTIPLE_MASTERS)
+pattern GlyphNames      = FaceFlag (#const FT_FACE_FLAG_GLYPH_NAMES)
+pattern ExternalStream  = FaceFlag (#const FT_FACE_FLAG_EXTERNAL_STREAM)
+pattern Hinter          = FaceFlag (#const FT_FACE_FLAG_HINTER)
+pattern CidKeyed        = FaceFlag (#const FT_FACE_FLAG_CID_KEYED)
+pattern Tricky          = FaceFlag (#const FT_FACE_FLAG_TRICKY)
+pattern Color           = FaceFlag (#const FT_FACE_FLAG_COLOR)
+pattern Variation       = FaceFlag (#const FT_FACE_FLAG_VARIATION)
 
-hasHorizontal, hasVertical :: Face -> IO Bool
-hasHorizontal face = peek (c_faceFlags face) >>= \f -> return $ f .&. HORIZONTAL /= mempty
-hasVertical face = peek (c_faceFlags face) >>= \f -> return $ f .&. VERTICAL /= mempty
+hasFaceFlag :: Face -> FaceFlag -> IO Bool
+hasFaceFlag face flag = do
+    f <- peek (c_faceFlags face)
+    return $ f .&. flag /= mempty
+
+hasHorizontal, hasVertical, hasKerning :: Face -> IO Bool
+hasHorizontal = flip hasFaceFlag Horizontal
+hasVertical   = flip hasFaceFlag Vertical
+hasKerning    = flip hasFaceFlag Kerning
