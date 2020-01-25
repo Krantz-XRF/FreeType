@@ -35,6 +35,7 @@ import FreeType.LowLevel.Types
 import FreeType.Error
 import FreeType.Face
 import FreeType.Glyph
+import FreeType.Kerning
 import FreeType.LowLevel.GlyphMetrics
 import FreeType.Outline hiding (c_outline)
 import FreeType.LowLevel.GlyphSlot
@@ -108,6 +109,17 @@ printChar c = do
     Just (face, idx) <- firstM faces $ \fc -> do
         i <- liftIO $ uncheckedGetCharIndex fc c
         return $ if i /= 0 then Just (fc, i) else Nothing
+    -- Kerning support
+    prevFace <- gets lastFace
+    prevIdx <- gets lastGlyph
+    kerningSupport <- liftIO $ hasKerning face
+    when (kerningSupport && prevFace == face) $ do
+        Vector dx dy <- liftIO $ getKerning face prevIdx idx KerningDefault
+        modify $ \st -> st{ penPosition =
+            let V2 x y = penPosition st
+            in V2 (x + dx) (y + dy) }
+    -- Record the font face and glyph index
+    modify $ \st -> st{ lastFace = face, lastGlyph = idx }
     -- Load glyph outline
     liftIO $ loadGlyph face idx [LoadNoBitmap]
     slot <- liftIO $ peek $ c_glyph face
