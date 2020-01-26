@@ -33,7 +33,7 @@ library:
   - FreeType
 
 tests:
-  FreeType-test:
+  FreeType-Rasterific-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
