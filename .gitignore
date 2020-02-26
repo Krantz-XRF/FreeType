@@ -1,7 +1,5 @@
 .stack-work/
-FreeType.cabal
-FreeType-convert.cabal
-FreeType-Rasterific.cabal
+*.cabal
 *~
 DISCARD/
 test-env/

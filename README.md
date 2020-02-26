@@ -18,6 +18,12 @@ See [`FreeType-Rasterific`](FreeType-Rasterific). See also [the online Haddock d
 
 See [`FreeType-convert`](FreeType-convert). See also [the online Haddock documentation](https://krantz-xrf.github.io/FreeType/).
 
+## The `HarfBuzz` Binding
+
+**Warning**: This binding is automatically generated from the HarfBuzz's C headers. It is currently not well tested, so use at your own risk.
+
+See [`HarfBuzz`](HarfBuzz). Documentation is not available at the moment.
+
 ## Reference
 
 Documentation can be generated using Haddock. Online documentation can be found at [My Blog](https://krantz-xrf.github.io/FreeType/). Please note that this documentation may not be up to date with the master branch.
