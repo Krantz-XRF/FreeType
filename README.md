@@ -22,7 +22,7 @@ See [`FreeType-convert`](FreeType-convert). See also [the online Haddock documen
 
 **Warning**: This binding is automatically generated from the HarfBuzz's C headers. It is currently not well tested, so use at your own risk.
 
-See [`HarfBuzz`](HarfBuzz). Documentation is not available at the moment.
+See [`HarfBuzz`](HarfBuzz). See also [the online Haddock documentation](https://krantz-xrf.github.io/FreeType/).
 
 ## Reference
 
